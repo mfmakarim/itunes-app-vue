@@ -55,23 +55,25 @@
 <script setup>
   const results = ref([])
   const route = useRoute()
-  const term = route.query.term || ''
-  const limit = route.query.limit || 25
-  const url = `https://itunes.apple.com/search?term=${term}&media=music&entity=song&limit=${limit}`
+  const router = useRouter()
+  const term = ref(route.query.term)
+  const limit = ref(route.query.limit)
+  const url = `https://itunes.apple.com/search?term=${term.value}&media=music&entity=song&limit=${limit.value}`
+  
   const { data, pending, refresh } = await useAsyncData('results', () => $fetch(url))
   const value = await JSON.parse(data.value)
   results.value = value.results
+  
   const loadMore = () => {
     const router = useRouter()
-    const newLimit = parseInt(limit) + 25
+    const newLimit = parseInt(limit.value || 0) + 25
     router.push({ path: '/feeds', 
       query: {
-        term, 
+        term: term.value, 
         limit: newLimit
       }
     })
   }
-  watch(() => route.query, () => {
-    refresh()
-  })
+
+  watch(() => route.query, () => router.go())
 </script>
